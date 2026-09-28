@@ -4,7 +4,7 @@
 
 Built for the Pravi Research *Build for Billions* hackathon. Positioned as an **asset-centric lifecycle and integration layer over existing systems** (GRMS, IWDMS, IFMS, e-Procurement), not a replacement. All data is fictitious.
 
-- Product spec: [docs/PRD.md](docs/PRD.md) · Module notes: [docs/modules/](docs/modules/) · Demo walkthrough: [docs/demo-script.md](docs/demo-script.md)
+- Product spec: [docs/PRD.md](docs/PRD.md) · Module notes: [docs/modules/](docs/modules/) · Demo walkthrough: [docs/demo-script.md](docs/demo-script.md) · **Handover & administration: [docs/handover.md](docs/handover.md)**
 
 ---
 
@@ -17,6 +17,7 @@ Built for the Pravi Research *Build for Billions* hackathon. Positioned as an **
 | **Maintenance workflow** | `OPEN → ASSIGNED → IN_PROGRESS → COMPLETED → VERIFIED → CLOSED` with reject loop. After-photo required; **verifier ≠ doer**; asset status follows automatically; **DLP defects are routed to the original contractor**. |
 | **Work journey** | Template-driven stages → tasks → gates (New Road in full; Bridge, Building, Repair, Emergency). Required deliverables, evaluator ≠ doer, **cost-based approval escalation**, award with DLP, milestone quality rework, **handover creates the asset** with its entire pre-asset history, **explainable contractor evaluation** at closure. "Who has the file now" on every work. |
 | **Risk & dashboards** | Explainable 0–100 risk score (condition, criticality, traffic, age, overdue inspection, repair history) with a "why?" breakdown and a suggested action. Role dashboards for HQ, EE, AE and contractors. |
+| **Administration** | `/admin` for HQ: users (create, transfer, deactivate, reset password), offices, asset types with a form-field editor, approval limits, contractors, work templates, system health — all audited. |
 | **Accountability** | Append-only audit log and asset timeline (database triggers reject edits), per-user **Activity** feed (who → whom → exact timestamp), notification bell. |
 
 **Roles (merged for the demo):** `HQ` (Admin + Secretary/CE + SE), `EE` (EE + DEE), `AE`, `CONTRACTOR`. Jurisdiction follows State → Circle → Division → Sub-division.
@@ -79,8 +80,10 @@ npm run dev                    # http://localhost:3000  ·  API http://localhost
 
 | Script | Purpose |
 |---|---|
+| `npm run seed:production -w backend` | Configuration only (offices, asset types, templates, limits) — for a real installation |
+| `npm run create-admin -w backend -- --email … --name "…"` | Create the first HQ administrator on a fresh installation |
 | `npm run db:reset -w backend` | **Destructive (demo/dev only):** drops all GujInfra tables, removes smoke-test logins/photos, re-migrates and re-seeds |
-| `npm run test:smoke -w backend` | ~170 API checks across M1–M6 (backend must be running; creates "Smoke …" records) |
+| `npm run test:smoke -w backend` | ~200 API checks across M1–M6 and admin (backend must be running; creates "Smoke …" records — not on production) |
 | `npm run build -w frontend` | Production build with type/lint validation |
 
 ### Demo accounts (password `GujInfra@2026`, one-click on the login page)

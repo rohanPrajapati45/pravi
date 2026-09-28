@@ -74,7 +74,7 @@ const DAY = 24 * 60 * 60 * 1000;
 const iso = (date) => date.toISOString().slice(0, 10);
 
 export const assetsStep = {
-  name: "asset types and 500 demo assets",
+  name: "asset types (+ 500 demo assets)",
   async run(client, context) {
     const typeIds = {};
     for (const type of assetTypes) {
@@ -90,6 +90,7 @@ export const assetsStep = {
       typeIds[type.code] = rows[0].id;
     }
     context.typeIds = typeIds;
+    if (context.profile === "production") return;
     const typeByCode = Object.fromEntries(assetTypes.map((type) => [type.code, type]));
 
     const { rows: subs } = await client.query(

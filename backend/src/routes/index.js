@@ -6,6 +6,7 @@ import inspectionRoutes from "./inspections.routes.js";
 import maintenanceRoutes from "./maintenance.routes.js";
 import worksRoutes from "./works.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
+import adminRoutes from "./admin.routes.js";
 import healthRoutes from "./health.routes.js";
 
 const router = Router();
@@ -20,5 +21,6 @@ router.use("/", inspectionRoutes);
 router.use("/", maintenanceRoutes);
 router.use("/", worksRoutes);
 router.use("/", dashboardRoutes);
+router.use("/", adminRoutes);
 
 export default router;

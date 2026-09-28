@@ -122,9 +122,14 @@ async function ensureAuthUsers() {
 }
 
 export const orgUsersStep = {
-  name: "org units, contractors, demo users",
+  name: "offices (+ demo contractors and logins)",
   async run(client, context) {
     const orgIds = await seedOrgUnits(client);
+    // Production installs get the real office hierarchy only; people are added through the Admin console.
+    if (context.profile === "production") {
+      Object.assign(context, { orgIds, contractorIds: {}, userIds: {} });
+      return;
+    }
     const contractorIds = await seedContractors(client);
     const authIds = await ensureAuthUsers();
     const userIds = {};

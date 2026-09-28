@@ -1,6 +1,7 @@
 import { query, withTransaction } from "../config/db.js";
 import supabaseAdmin from "../config/supabase.js";
 import AppError from "../utils/AppError.js";
+import { assertRoleFitsOffice } from "./admin.service.js";
 import { audit } from "./audit.service.js";
 import { applyJurisdictionScope, assertOrgUnitInScope } from "./jurisdiction.service.js";
 
@@ -52,6 +53,7 @@ export async function listUsers(user, { page, limit, offset, role, org_unit_id, 
 
 export async function createUser(actor, input, ip) {
   await assertOrgUnitInScope(actor, input.org_unit_id);
+  await assertRoleFitsOffice(input.role, input.org_unit_id, input.contractor_id);
 
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email: input.email,

@@ -6,6 +6,11 @@ import AppError from "../utils/AppError.js";
 const cache = new Map();
 const MAX_CACHE_MS = 5 * 60 * 1000;
 
+// Called after an admin changes a user's role, office or active flag so it applies on their next request.
+export function invalidateUserCache(userId) {
+  for (const [token, entry] of cache) if (entry.user.id === userId) cache.delete(token);
+}
+
 export async function loadProfileByAuthId(authId) {
   const { rows } = await query(
     `select u.id, u.auth_id, u.name, u.email, u.role, u.designation, u.contractor_id, u.is_active,

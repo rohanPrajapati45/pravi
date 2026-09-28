@@ -20,9 +20,10 @@ export const programmes = [
 ];
 
 export const templatesStep = {
-  name: "work templates, approval limits, programmes",
+  name: "work templates and approval limits (+ demo programmes)",
   async run(client, context) {
     context.templateIds = await upsertTemplates(client);
+    if (context.profile === "production") return;
     const { rows: state } = await client.query("select id from org_units where code = 'GJ'");
     context.programmeIds = {};
     for (const programme of programmes) {

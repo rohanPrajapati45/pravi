@@ -23,10 +23,13 @@ const client = new pg.Client({
   ssl: process.env.DATABASE_URL.includes("localhost") ? false : { rejectUnauthorized: false }
 });
 
-// Each step is idempotent and runs in order; later modules append steps here.
-// `context` carries ids (orgIds, userIds, ...) from earlier steps to later ones.
-const steps = [orgUsersStep, assetsStep, inspectionsStep, maintenanceStep, templatesStep, workHistoryStep];
-const context = {};
+// Each step is idempotent and runs in order; `context` carries ids from earlier steps to later ones.
+// --profile=production loads configuration only (offices, asset types, templates, limits) — no demo people or data.
+const profile = process.argv.includes("--profile=production") ? "production" : "demo";
+const demoOnly = new Set([inspectionsStep, maintenanceStep, workHistoryStep]);
+const steps = [orgUsersStep, assetsStep, inspectionsStep, maintenanceStep, templatesStep, workHistoryStep].filter((step) => profile === "demo" || !demoOnly.has(step));
+const context = { profile };
+console.log(`Seed profile: ${profile}`);
 
 async function run() {
   await client.connect();
