@@ -3,7 +3,7 @@
 import type { Session } from "@supabase/supabase-js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, ApiError } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
+import { missingConfig, supabase } from "@/lib/supabase";
 import type { Profile } from "@/types/auth";
 
 type Status = "loading" | "signed-out" | "ready" | "error";
@@ -46,6 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (missingConfig.length) {
+      setError(`The frontend is missing ${missingConfig.join(", ")} — check frontend/.env.local (local) or the Vercel environment variables, then restart / redeploy.`);
+      setStatus("error");
+      return;
+    }
     supabase.auth.getSession().then(({ data }) => loadProfile(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((event, next) => {
       // Token refreshes only swap the token; the profile is unchanged.
