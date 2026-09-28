@@ -2,6 +2,17 @@
 
 **One digital identity and one lifecycle timeline for every road, bridge and government building** — from the government's decision to build, through survey, sanction, tender, construction and handover, to every inspection, repair and contractor evaluation that follows.
 
+## 🔗 Live demo
+
+| | Link |
+|---|---|
+| **Web app** | **https://pravi-frontend-cm4e.vercel.app** |
+| Citizen complaint page (no login) | https://pravi-frontend-cm4e.vercel.app/complain |
+| Track a complaint | https://pravi-frontend-cm4e.vercel.app/complain/track |
+| API (health) | https://gujinfra-api.onrender.com/api/v1/health |
+
+Sign in with the one-click demo accounts on the login page (password for all: `GujInfra@2026`). The API runs on Render's free tier, so the first request after idle can take ~30–50 s to wake up.
+
 Built for the Pravi Research *Build for Billions* hackathon. Positioned as an **asset-centric lifecycle and integration layer over existing systems** (GRMS, IWDMS, IFMS, e-Procurement), not a replacement. All data is fictitious.
 
 - Product spec: [docs/PRD.md](docs/PRD.md) · Module notes: [docs/modules/](docs/modules/) · Demo walkthrough: [docs/demo-script.md](docs/demo-script.md) · **Handover & administration: [docs/handover.md](docs/handover.md)** · **Full walkthrough with edge cases: [docs/system-walkthrough.md](docs/system-walkthrough.md)**
