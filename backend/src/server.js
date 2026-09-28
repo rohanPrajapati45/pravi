@@ -14,6 +14,12 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 app.use(cors({ origin: allowedOrigins }));
+// Collapse accidental double slashes in the path ("//api/v1/me" → "/api/v1/me"); the query string is left untouched.
+app.use((request, _response, next) => {
+  const [path, query] = request.url.split("?");
+  if (path.includes("//")) request.url = path.replace(/\/{2,}/g, "/") + (query !== undefined ? `?${query}` : "");
+  next();
+});
 app.use(express.json({ limit: "1mb" }));
 app.use(logger);
 

@@ -1,6 +1,17 @@
 import type { ApiResponse, PageMeta } from "@/types/api";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
+// Tolerate a trailing slash or a doubled slash in the configured value (e.g. "https://host//api/v1/").
+function normaliseBase(raw: string) {
+  try {
+    const url = new URL(raw.trim());
+    url.pathname = url.pathname.replace(/\/{2,}/g, "/").replace(/\/+$/, "");
+    return url.toString().replace(/\/+$/, "");
+  } catch {
+    return raw.trim().replace(/\/+$/, "");
+  }
+}
+
+export const API_URL = normaliseBase(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1");
 
 export class ApiError extends Error {
   constructor(
