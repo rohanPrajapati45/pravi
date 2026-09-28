@@ -181,7 +181,9 @@ export default function Asset360Page() {
             {a.origin_work ? (
               <dl className="divide-y divide-line">
                 <Row label="Origin work">
-                  <span className="font-mono text-xs">{a.origin_work.work_code}</span>
+                  <Link href={`/works/${a.origin_work.id}`} className="font-mono text-xs text-accent-text underline">
+                    {a.origin_work.work_code}
+                  </Link>
                 </Row>
                 <Row label="Title">{a.origin_work.title}</Row>
                 <Row label="Contractor">{a.origin_work.contractor_name}</Row>

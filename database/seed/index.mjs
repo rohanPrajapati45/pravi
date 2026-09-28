@@ -11,6 +11,7 @@ const { assetsStep } = await import("./02_assets.mjs");
 const { inspectionsStep } = await import("./03_inspections.mjs");
 const { maintenanceStep } = await import("./04_maintenance.mjs");
 const { templatesStep } = await import("./05_works.mjs");
+const { workHistoryStep } = await import("./06_work_history.mjs");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set in Pravi/.env");
@@ -24,7 +25,7 @@ const client = new pg.Client({
 
 // Each step is idempotent and runs in order; later modules append steps here.
 // `context` carries ids (orgIds, userIds, ...) from earlier steps to later ones.
-const steps = [orgUsersStep, assetsStep, inspectionsStep, maintenanceStep, templatesStep];
+const steps = [orgUsersStep, assetsStep, inspectionsStep, maintenanceStep, templatesStep, workHistoryStep];
 const context = {};
 
 async function run() {

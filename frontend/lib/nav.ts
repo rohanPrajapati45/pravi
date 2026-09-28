@@ -2,7 +2,7 @@ import type { NavItem } from "@/components/ui/Sidebar";
 import type { Role } from "@/types/auth";
 
 // Routes that exist today; others render disabled until their module ships.
-const LIVE_ROUTES = new Set(["/", "/audit", "/assets", "/inspections", "/maintenance"]);
+const LIVE_ROUTES = new Set(["/", "/audit", "/assets", "/inspections", "/maintenance", "/works", "/tasks", "/programmes"]);
 
 const items: Record<string, Omit<NavItem, "disabled">> = {
   dashboard: { href: "/", label: "Dashboard" },
@@ -16,8 +16,8 @@ const items: Record<string, Omit<NavItem, "disabled">> = {
 };
 
 const byRole: Record<Role, Array<keyof typeof items>> = {
-  HQ: ["dashboard", "assets", "programmes", "works", "maintenance", "inspections", "audit"],
-  EE: ["dashboard", "tasks", "assets", "works", "maintenance", "inspections", "audit"],
+  HQ: ["dashboard", "tasks", "assets", "programmes", "works", "maintenance", "inspections", "audit"],
+  EE: ["dashboard", "tasks", "assets", "works", "programmes", "maintenance", "inspections", "audit"],
   AE: ["dashboard", "tasks", "assets", "inspections", "maintenance"],
   CONTRACTOR: ["dashboard", "tasks", "works", "maintenance"]
 };

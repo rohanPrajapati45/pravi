@@ -12,7 +12,15 @@ const dotColour: Record<string, string> = {
   INSPECTION_RECORDED: "bg-condition-good",
   MAINTENANCE_RAISED: "bg-condition-poor",
   MAINTENANCE_VERIFIED: "bg-condition-excellent",
-  HANDED_OVER: "bg-accent"
+  HANDED_OVER: "bg-condition-excellent",
+  WORK_INITIATED: "bg-accent",
+  STAGE_PASSED: "bg-accent",
+  STAGE_RETURNED: "bg-condition-poor",
+  CONSTRUCTION_STARTED: "bg-sky-500",
+  MILESTONE_ACCEPTED: "bg-condition-good",
+  MILESTONE_RETURNED: "bg-condition-poor",
+  MAINTENANCE_STARTED: "bg-condition-moderate",
+  MAINTENANCE_CLOSED: "bg-slate-400"
 };
 
 function describeChange(event: TimelineEvent) {

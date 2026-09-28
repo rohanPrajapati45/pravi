@@ -811,6 +811,11 @@ Real integrations (GRMS/IFMS/IWDMS/eProcurement), payment/billing, native apps, 
 | 2026-09-28 | Jurisdiction uses a materialised `org_units.path` (e.g. `/GJ/CIR-AMD/DIV-AMD/SUB-DAS/`) with a prefix index | Subtree scoping is one indexed `LIKE 'prefix%'`, no recursive query per request |
 | 2026-09-28 | Risk engine + generic workflow engine built in M2 (not M6) | Asset 360 and M3 need live risk; M6 becomes dashboards only |
 | 2026-09-28 | Full 500-asset demo seed generated in M2 | One deterministic generator; M7 map and M6 dashboards get realistic volume for free |
+| 2026-09-28 | M5a + M5b built as one module on a single generic stage engine | End-to-end journey shipped together; no half-state between modules |
+| 2026-09-28 | Gate evaluator must not have worked on any task of that stage; a second fake HQ user (Secretary) added | Segregation of duties is enforceable with merged roles |
+| 2026-09-28 | Gates: Initiation, Award, Handover, Closure → HQ (SE/CE level, merged); Survey, Design, Construction → EE; Approvals → cost limit | Matches "award authority" / "SE for major works" in 7.5.3 under merged roles |
+| 2026-09-28 | Closure stage spans the DLP (planned 730 days) but may be closed earlier; DLP keeps being tracked on the asset | Resolves 7.2 ("CLOSED after financial closure, DLP tracked separately") vs 7.5.3 stage 7 |
+| 2026-09-28 | Progress = weighted accepted milestones; separate progress-report and site-record screens deferred | Evidence is attached to milestone submissions instead |
 | 2026-09-28 | RLS enabled on every table with no policies; the API connects as the DB owner | Supabase exposes `public` tables via its Data API; RLS-with-no-policy closes that door so the Express API is the only way in |
 | 2026-09-28 | Dashboards and screens are the builder's call within Section 13; one dashboard page whose widgets change by role | User delegated UI decisions |
 | 2026-09-28 | Single backend `.env` at repo root; frontend uses `frontend/.env.local` (public values only) | Keep secrets out of the Next.js bundle |

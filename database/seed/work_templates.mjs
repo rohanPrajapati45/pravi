@@ -63,7 +63,8 @@ function newAssetStages(constructionMilestones) {
       ]
     },
     {
-      code: "DLP_CLOSURE", name: "DLP & closure", kind: "CLOSURE", days: 30, gate: "HQ", pass: "CLOSED",
+      // Spans the defect liability period (24 months by default).
+      code: "DLP_CLOSURE", name: "DLP & closure", kind: "CLOSURE", days: 730, gate: "HQ", pass: "CLOSED",
       checklist: ["DLP defects rectified or tracked on the asset", "Contractor evaluation recorded", "Financial closure references recorded"],
       tasks: [task("End-of-DLP joint inspection", "AE", ["End-of-DLP report"]), task("Record security / retention release reference", "EE", ["Release reference"])]
     }

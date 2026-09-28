@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import Loading from "@/components/ui/Loading";
 import { RiskBadge } from "@/components/assets/RiskBadge";
 import AppShell from "@/components/layout/AppShell";
 import Button, { ButtonLink } from "@/components/ui/Button";
@@ -55,13 +56,29 @@ const columns: Column<AssetListRow>[] = [
   }
 ];
 
-type Filters = { q: string; type_id: string; district: string; status: string; condition: string; risk_band: string; sort: string; overdue: string };
-const empty: Filters = { q: "", type_id: "", district: "", status: "", condition: "", risk_band: "", sort: "risk", overdue: "" };
+type Filters = { q: string; type_id: string; district: string; status: string; condition: string; risk_band: string; sort: string; overdue: string; in_dlp: string };
+const empty: Filters = { q: "", type_id: "", district: "", status: "", condition: "", risk_band: "", sort: "risk", overdue: "", in_dlp: "" };
 
 export default function AssetsPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <AssetRegistry />
+    </Suspense>
+  );
+}
+
+function AssetRegistry() {
   const router = useRouter();
+  const params = useSearchParams();
   const { profile } = useAuth();
-  const [filters, setFilters] = useState<Filters>(empty);
+  // Dashboard tiles deep-link here with filters in the URL.
+  const [filters, setFilters] = useState<Filters>(() => ({
+    ...empty,
+    risk_band: params.get("risk_band") ?? "",
+    overdue: params.get("overdue") ?? "",
+    in_dlp: params.get("in_dlp") ?? "",
+    status: params.get("status") ?? ""
+  }));
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
