@@ -2,6 +2,9 @@
   "name": "backend",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "node --experimental-websocket --watch src/server.js",
     "start": "node --experimental-websocket src/server.js",

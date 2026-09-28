@@ -1,0 +1,24 @@
+# Render blueprint for the GujInfra 360 API (backend only; the frontend is on Vercel).
+# Secrets are marked sync:false — Render asks for their values when the blueprint is applied.
+services:
+  - type: web
+    name: gujinfra-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci -w backend && npm run migrate -w backend
+    startCommand: npm run start -w backend
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

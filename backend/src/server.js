@@ -8,7 +8,12 @@ import apiRoutes from "./routes/index.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000" }));
+// Comma-separated allow-list, e.g. "https://gujinfra.vercel.app,http://localhost:3000".
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "1mb" }));
 app.use(logger);
 
