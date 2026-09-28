@@ -4,7 +4,7 @@
 
 Built for the Pravi Research *Build for Billions* hackathon. Positioned as an **asset-centric lifecycle and integration layer over existing systems** (GRMS, IWDMS, IFMS, e-Procurement), not a replacement. All data is fictitious.
 
-- Product spec: [docs/PRD.md](docs/PRD.md) · Module notes: [docs/modules/](docs/modules/) · Demo walkthrough: [docs/demo-script.md](docs/demo-script.md) · **Handover & administration: [docs/handover.md](docs/handover.md)**
+- Product spec: [docs/PRD.md](docs/PRD.md) · Module notes: [docs/modules/](docs/modules/) · Demo walkthrough: [docs/demo-script.md](docs/demo-script.md) · **Handover & administration: [docs/handover.md](docs/handover.md)** · **Full walkthrough with edge cases: [docs/system-walkthrough.md](docs/system-walkthrough.md)**
 
 ---
 
