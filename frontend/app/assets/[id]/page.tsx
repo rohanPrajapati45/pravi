@@ -23,6 +23,7 @@ import Tabs from "@/components/ui/Tabs";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { daysFromToday, formatChainage, formatDate, formatRupees } from "@/lib/format";
+import { useToast } from "@/lib/toast";
 import { useApi } from "@/lib/useApi";
 import type { Asset360, TimelineEvent } from "@/types/assets";
 
@@ -298,6 +299,7 @@ export default function Asset360Page() {
 
 function EditModal({ asset, token, role, onClose, onSaved }: { asset: Asset360; token: string | null; role: string; onClose: () => void; onSaved: () => void }) {
   const officer = role === "HQ" || role === "EE";
+  const { notify } = useToast();
   const [name, setName] = useState(asset.name);
   const [attributes, setAttributes] = useState<Record<string, unknown>>(asset.attributes);
   const [lat, setLat] = useState(asset.lat?.toString() ?? "");
@@ -321,6 +323,7 @@ function EditModal({ asset, token, role, onClose, onSaved }: { asset: Asset360; 
     }
     try {
       await api(`/assets/${asset.id}`, { method: "PATCH", token, body });
+      notify({ title: "Asset updated", description: "Change recorded on the timeline" });
       onSaved();
       onClose();
     } catch (caught) {
@@ -378,12 +381,14 @@ function StatusModal({ asset, token, onClose, onSaved }: { asset: Asset360; toke
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const needsRemarks = options.find((option) => option.to === to)?.requires.includes("remarks");
+  const { notify } = useToast();
 
   async function save() {
     setSaving(true);
     setError(null);
     try {
       await api(`/assets/${asset.id}/status`, { method: "POST", token, body: { to, remarks: remarks || undefined } });
+      notify({ title: `Status changed to ${humanize(to)}`, description: asset.asset_code });
       onSaved();
       onClose();
     } catch (caught) {

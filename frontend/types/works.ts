@@ -11,6 +11,8 @@ export type WorkTask = {
   assigned_to: string | null;
   assigned_to_name: string | null;
   assigned_to_role: string | null;
+  assigned_at: string | null;
+  assigned_by_name: string | null;
   due_date: string | null;
   status: TaskStatus;
   required_deliverables: string[];

@@ -12,7 +12,7 @@ import StatusBadge, { humanize } from "@/components/ui/StatusBadge";
 import Table, { type Column } from "@/components/ui/Table";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/cn";
-import { formatRupees } from "@/lib/format";
+import { formatDateTime, formatRupees } from "@/lib/format";
 import { useApi } from "@/lib/useApi";
 import type { Programme, WorkListRow } from "@/types/works";
 
@@ -66,6 +66,11 @@ const columns: Column<WorkListRow>[] = [
         <p className="text-xs text-muted">{row.contract_value ? "contract" : row.sanctioned_amount ? "sanctioned" : "estimate"}</p>
       </div>
     )
+  },
+  {
+    key: "initiated",
+    header: "Initiated",
+    render: (row) => <span className="whitespace-nowrap font-mono text-xs text-muted">{formatDateTime(row.created_at)}</span>
   },
   { key: "status", header: "Status", render: (row) => <StatusBadge status={row.status} /> }
 ];

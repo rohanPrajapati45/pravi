@@ -19,6 +19,7 @@ import { cn } from "@/lib/cn";
 import { conditionScale } from "@/lib/defects";
 import { formatDate, formatDateTime, formatRupees } from "@/lib/format";
 import { uploadEvidence } from "@/lib/storage";
+import { useToast } from "@/lib/toast";
 import { useApi } from "@/lib/useApi";
 import { MAINTENANCE_FLOW, type MaintenanceAction, type MaintenanceDetail } from "@/types/maintenance";
 
@@ -193,6 +194,7 @@ type Assignee = { id: string; name: string; role: string; designation: string | 
 
 function ActionModal({ action, request, onClose, onDone }: { action: MaintenanceAction; request: MaintenanceDetail; onClose: () => void; onDone: () => void }) {
   const { token } = useAuth();
+  const { notify } = useToast();
   const assignees = useApi<Assignee[]>(action === "assign" ? `/maintenance-requests/${request.id}/assignees` : null);
   const [assignedTo, setAssignedTo] = useState("");
   const [dueDate, setDueDate] = useState(request.due_date ?? "");
@@ -218,6 +220,17 @@ function ActionModal({ action, request, onClose, onDone }: { action: Maintenance
       if (action === "reject" || action === "cancel") body = { remarks };
       if (action === "close") body = { actual_cost: Number(cost || 0), remarks: remarks || undefined };
       await api(`/maintenance-requests/${request.id}/${action}`, { method: "POST", token, body });
+      const assigneeName = assignees.data?.find((person) => person.id === assignedTo)?.name;
+      const messages: Record<MaintenanceAction, string> = {
+        assign: `Assigned to ${assigneeName ?? "assignee"}`,
+        start: "Work started — asset now under maintenance",
+        complete: "Marked complete — sent for independent verification",
+        verify: "Repair verified — asset back in service",
+        reject: "Returned to the assignee for rework",
+        close: "Request closed",
+        cancel: "Request cancelled"
+      };
+      notify({ title: messages[action], description: `${request.request_code} · ${request.title}` });
       onDone();
       onClose();
     } catch (caught) {

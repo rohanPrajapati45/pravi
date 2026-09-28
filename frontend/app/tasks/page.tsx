@@ -8,11 +8,25 @@ import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import StatusBadge from "@/components/ui/StatusBadge";
-import { daysFromToday, formatDate, formatRupees } from "@/lib/format";
+import { daysFromToday, formatDate, formatDateTime, formatRupees } from "@/lib/format";
 import { useApi } from "@/lib/useApi";
 
 type Inbox = {
-  assigned: Array<{ id: string; title: string; status: string; due_date: string | null; is_milestone: boolean; review_remarks: string | null; stage_name: string; stage_status: string; work_id: string; work_code: string; work_title: string }>;
+  assigned: Array<{
+    id: string;
+    title: string;
+    status: string;
+    due_date: string | null;
+    is_milestone: boolean;
+    review_remarks: string | null;
+    stage_name: string;
+    stage_status: string;
+    work_id: string;
+    work_code: string;
+    work_title: string;
+    assigned_at: string | null;
+    assigned_by_name: string | null;
+  }>;
   to_review: Array<{ id: string; title: string; submitted_at: string; is_milestone: boolean; stage_name: string; work_id: string; work_code: string; work_title: string; submitted_by_name: string }>;
   gates: Array<{ stage_id: string; stage_name: string; gate_role: string; due_at: string | null; work_id: string; work_code: string; work_title: string; estimated_cost: number | null; sanctioned_amount: number | null }>;
 };
@@ -59,6 +73,12 @@ export default function TasksPage() {
                       meta={
                         <>
                           {task.work_title} · {task.stage_name}
+                          {task.assigned_at && (
+                            <span className="block font-mono text-[11px]">
+                              Assigned {formatDateTime(task.assigned_at)}
+                              {task.assigned_by_name && ` by ${task.assigned_by_name}`}
+                            </span>
+                          )}
                           {task.review_remarks && task.status === "RETURNED" && <span className="text-amber-700"> · rework: {task.review_remarks}</span>}
                         </>
                       }
@@ -90,7 +110,7 @@ export default function TasksPage() {
                         href={`/works/${task.work_id}`}
                         code={task.work_code}
                         title={task.title}
-                        meta={`${task.submitted_by_name} · ${task.stage_name} · ${formatDate(task.submitted_at)}`}
+                        meta={`${task.submitted_by_name} · ${task.stage_name} · submitted ${formatDateTime(task.submitted_at)}`}
                         badges={task.is_milestone ? <StatusBadge status="MILESTONE" label="Quality check" tone="accent" /> : null}
                       />
                     ))}

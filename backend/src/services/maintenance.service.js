@@ -53,8 +53,21 @@ export async function createRequestRecord(client, { asset, user, source, sourceI
     },
     client
   );
+  // The division EE gets the new request on their desk.
+  const { rows: ee } = await client.query(
+    `select u.id from users u join org_units d on d.id = u.org_unit_id join org_units s on s.parent_id = d.id
+      where u.role = 'EE' and u.is_active and s.id = $1 limit 1`,
+    [asset.org_unit_id]
+  );
   await audit(
-    { user, action: source === "INSPECTION" ? "MAINTENANCE_AUTO_RAISED" : "MAINTENANCE_RAISED", entity: "maintenance_request", entityId: request.id, diff: { after: { request_code: request.request_code, source, severity, dlp_liable: request.dlp_liable } } },
+    {
+      user,
+      action: source === "INSPECTION" ? "MAINTENANCE_AUTO_RAISED" : "MAINTENANCE_RAISED",
+      entity: "maintenance_request",
+      entityId: request.id,
+      diff: { after: { request_code: request.request_code, source, severity, dlp_liable: request.dlp_liable } },
+      targetUserId: ee[0]?.id && ee[0].id !== user.id ? ee[0].id : null
+    },
     client
   );
   return request;
@@ -67,7 +80,6 @@ export async function createManualRequest(user, input, ip) {
     const { rows } = await client.query("select * from assets where id = $1 for update", [input.asset_id]);
     const request = await createRequestRecord(client, { asset: rows[0], user, source: "MANUAL", title: input.title, description: input.description, severity: input.severity });
     await recomputeRisk(client, input.asset_id);
-    await audit({ user, action: "MAINTENANCE_RAISED_MANUAL", entity: "maintenance_request", entityId: request.id, ip }, client);
     return request;
   });
 }
@@ -216,6 +228,17 @@ export async function listAssignees(user, id) {
 }
 
 // Runs one workflow step: re-reads the row under lock, checks the transition, applies `apply`, then logs.
+// Who each step is handed to, for the activity trail.
+const STEP_TARGET = {
+  MAINTENANCE_ASSIGNED: (request, changes) => changes.assigned_to,
+  MAINTENANCE_STARTED: (request) => request.assigned_by,
+  MAINTENANCE_COMPLETED: (request) => request.assigned_by,
+  MAINTENANCE_VERIFIED: (request) => request.completed_by ?? request.assigned_to,
+  MAINTENANCE_REJECTED: (request) => request.completed_by ?? request.assigned_to,
+  MAINTENANCE_CLOSED: (request) => request.assigned_to,
+  MAINTENANCE_CANCELLED: (request) => request.assigned_to ?? request.created_by
+};
+
 async function step(user, id, { to, action, remarks, ip, check, apply, describe }) {
   await getScopedRequest(user, id);
   return withTransaction(async (client) => {
@@ -227,7 +250,11 @@ async function step(user, id, { to, action, remarks, ip, check, apply, describe 
     const changes = (await apply(client, request)) ?? {};
     const sets = ["status = $2", ...Object.keys(changes).map((key, index) => `${key} = $${index + 3}`)];
     await client.query(`update maintenance_requests set ${sets.join(", ")} where id = $1`, [id, to, ...Object.values(changes)]);
-    await audit({ user, action, entity: "maintenance_request", entityId: id, diff: { from: request.status, to, remarks: remarks ?? null, ...describe }, ip }, client);
+    const target = STEP_TARGET[action]?.(request, changes) ?? null;
+    await audit(
+      { user, action, entity: "maintenance_request", entityId: id, diff: { from: request.status, to, remarks: remarks ?? null, ...describe }, ip, targetUserId: target && target !== user.id ? target : null },
+      client
+    );
     await lifecycleEvent(
       {
         assetId: request.asset_id,

@@ -9,10 +9,12 @@ import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useToast } from "@/lib/toast";
 
 export default function NewRequestModal({ assetId, assetName, inDlp, onClose }: { assetId: string; assetName: string; inDlp: boolean; onClose: () => void }) {
   const router = useRouter();
   const { token } = useAuth();
+  const { notify } = useToast();
   const [title, setTitle] = useState("");
   const [severity, setSeverity] = useState("MEDIUM");
   const [description, setDescription] = useState("");
@@ -23,7 +25,8 @@ export default function NewRequestModal({ assetId, assetName, inDlp, onClose }: 
     setSaving(true);
     setError(null);
     try {
-      const { data } = await api<{ id: string }>("/maintenance-requests", { method: "POST", token, body: { asset_id: assetId, title, severity, description: description || undefined } });
+      const { data } = await api<{ id: string; request_code: string }>("/maintenance-requests", { method: "POST", token, body: { asset_id: assetId, title, severity, description: description || undefined } });
+      notify({ title: `${data.request_code} raised`, description: "The division EE has it on their desk" });
       router.push(`/maintenance/${data.id}`);
     } catch (caught) {
       setError((caught as Error).message);

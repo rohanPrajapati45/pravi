@@ -14,7 +14,7 @@ const gateLabel = { HQ: "HQ", EE: "Responsible EE", COST_LIMIT: "Approver by cos
 function StageIcon({ status }: { status: WorkStage["status"] }) {
   const base = "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold";
   if (status === "PASSED") return <span className={cn(base, "bg-condition-excellent text-white")} aria-label="Passed">✓</span>;
-  if (status === "ACTIVE") return <span className={cn(base, "bg-accent text-ink ring-4 ring-accent-soft")} aria-label="Active">●</span>;
+  if (status === "ACTIVE") return <span className={cn(base, "bg-accent text-white ring-4 ring-accent-soft")} aria-label="Active">●</span>;
   if (status === "REJECTED") return <span className={cn(base, "bg-condition-critical text-white")} aria-label="Rejected">✕</span>;
   return <span className={cn(base, "border border-line bg-surface text-muted")} aria-label="Locked">·</span>;
 }
@@ -40,11 +40,26 @@ function TaskRow({ task, onAction }: { task: WorkTask; onAction: (task: WorkTask
             {task.is_milestone && <span className="ml-2 text-xs font-normal text-muted">milestone · weight {Number(task.weight)}</span>}
           </p>
           <p className="text-xs text-muted">
-            {task.assigned_to_name ? `${task.assigned_to_name}` : `Unassigned (${task.default_assignee_role === "CONTRACTOR" ? "contractor" : task.default_assignee_role})`}
+            {task.assigned_to_name ? <span className="font-medium text-ink">{task.assigned_to_name}</span> : `Unassigned (${task.default_assignee_role === "CONTRACTOR" ? "contractor" : task.default_assignee_role})`}
             {task.due_date && ` · due ${formatDate(task.due_date)}`}
-            {task.submitted_at && ` · submitted ${formatDate(task.submitted_at)}`}
-            {task.reviewed_at && task.status === "ACCEPTED" && ` · accepted by ${task.reviewed_by_name}`}
           </p>
+          <ol className="mt-1 space-y-0.5 text-[11px] text-muted">
+            {task.assigned_at && task.assigned_to_name && (
+              <li>
+                <span className="font-mono">{formatDateTime(task.assigned_at)}</span> · assigned{task.assigned_by_name ? ` by ${task.assigned_by_name}` : ""}
+              </li>
+            )}
+            {task.submitted_at && (
+              <li>
+                <span className="font-mono">{formatDateTime(task.submitted_at)}</span> · submitted by {task.submitted_by_name}
+              </li>
+            )}
+            {task.reviewed_at && (task.status === "ACCEPTED" || task.status === "RETURNED") && (
+              <li>
+                <span className="font-mono">{formatDateTime(task.reviewed_at)}</span> · {task.status === "ACCEPTED" ? "accepted" : "returned"} by {task.reviewed_by_name}
+              </li>
+            )}
+          </ol>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <StatusBadge status={task.status} tone={taskTone[task.status]} />

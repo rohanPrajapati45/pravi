@@ -13,16 +13,16 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-ink hover:bg-[#00C4E6] border border-transparent",
-  secondary: "bg-surface text-ink border border-line hover:bg-page",
-  ghost: "bg-transparent text-muted hover:bg-page hover:text-ink border border-transparent",
-  danger: "bg-condition-critical text-white hover:bg-red-700 border border-transparent"
+  primary: "bg-accent text-white shadow-sm hover:bg-accent-hover border border-transparent",
+  secondary: "bg-surface text-ink border border-line shadow-sm hover:border-slate-300 hover:bg-slate-50",
+  ghost: "bg-transparent text-muted hover:bg-slate-100 hover:text-ink border border-transparent",
+  danger: "bg-condition-critical text-white shadow-sm hover:bg-red-700 border border-transparent"
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm",
+  sm: "h-8 px-3 text-[13px]",
   md: "h-10 px-4 text-sm",
-  lg: "h-12 px-5 text-base"
+  lg: "h-12 px-5 text-[15px]"
 };
 
 export function buttonClass({ variant = "primary", size = "md", className }: { variant?: Variant; size?: Size; className?: string } = {}) {

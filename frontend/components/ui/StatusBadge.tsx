@@ -3,12 +3,21 @@ import { cn } from "@/lib/cn";
 export type Tone = "neutral" | "info" | "success" | "warning" | "danger" | "accent";
 
 const tones: Record<Tone, string> = {
-  neutral: "bg-slate-100 text-slate-700 border-slate-200",
-  info: "bg-sky-50 text-sky-700 border-sky-200",
-  success: "bg-green-50 text-green-700 border-green-200",
-  warning: "bg-amber-50 text-amber-800 border-amber-200",
-  danger: "bg-red-50 text-red-700 border-red-200",
-  accent: "bg-accent-soft text-accent-text border-cyan-200"
+  neutral: "bg-slate-100 text-slate-700 ring-slate-200",
+  info: "bg-sky-50 text-sky-700 ring-sky-200",
+  success: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  warning: "bg-amber-50 text-amber-800 ring-amber-200",
+  danger: "bg-red-50 text-red-700 ring-red-200",
+  accent: "bg-accent-soft text-accent-text ring-blue-200"
+};
+
+const dots: Record<Tone, string> = {
+  neutral: "bg-slate-400",
+  info: "bg-sky-500",
+  success: "bg-emerald-500",
+  warning: "bg-amber-500",
+  danger: "bg-red-500",
+  accent: "bg-accent"
 };
 
 const statusTones: Record<string, Tone> = {
@@ -54,11 +63,12 @@ export default function StatusBadge({ status, label, tone, className }: StatusBa
   return (
     <span
       className={cn(
-        "inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset",
         tones[resolved],
         className
       )}
     >
+      <span className={cn("h-1.5 w-1.5 rounded-full", dots[resolved])} aria-hidden />
       {label ?? humanize(status)}
     </span>
   );
@@ -80,7 +90,7 @@ export function ConditionBadge({ rating, className }: { rating: number | null | 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-2 py-0.5 text-xs font-medium text-ink",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-ink ring-1 ring-inset ring-line",
         className
       )}
     >

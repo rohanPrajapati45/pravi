@@ -54,11 +54,11 @@ export default function Table<T>({
   else if (rows.length === 0) body = <EmptyState title={emptyTitle} description={emptyDescription} />;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-surface">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
       {body ?? (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-line bg-page text-xs uppercase tracking-wide text-muted">
+            <thead className="border-b border-line bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 {columns.map((column) => (
                   <th key={column.key} scope="col" className={cn("px-4 py-2.5 font-medium", column.className)}>
@@ -72,7 +72,7 @@ export default function Table<T>({
                 <tr
                   key={rowKey(row)}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={cn(onRowClick && "cursor-pointer hover:bg-page")}
+                  className={cn("transition-colors", onRowClick && "cursor-pointer hover:bg-accent-soft/40")}
                 >
                   {columns.map((column) => (
                     <td key={column.key} className={cn("px-4 py-3 align-middle", column.className)}>

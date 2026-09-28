@@ -8,17 +8,26 @@
   }
 
   body {
-    @apply bg-page font-sans text-ink antialiased;
+    @apply bg-page font-sans text-[15px] text-ink antialiased;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    @apply font-heading;
+    @apply font-heading tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-accent-soft text-ink;
   }
 
   :focus-visible {
     @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-page;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
   }
 }

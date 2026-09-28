@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { formatRupees } from "@/lib/format";
 import { uploadEvidence } from "@/lib/storage";
+import { useToast } from "@/lib/toast";
 import { useApi } from "@/lib/useApi";
 import type { WorkJourney, WorkStage, WorkTask } from "@/types/works";
 
@@ -18,13 +19,15 @@ type Done = { onClose: () => void; onDone: () => void };
 type Person = { id: string; name: string; role: string; designation: string | null; org_unit_name: string; contractor_name: string | null };
 
 function useSubmit(onDone: () => void, onClose: () => void) {
+  const { notify } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  async function run(action: () => Promise<unknown>) {
+  async function run(action: () => Promise<unknown>, message?: { title: string; description?: string }) {
     setSaving(true);
     setError(null);
     try {
       await action();
+      if (message) notify(message);
       onDone();
       onClose();
     } catch (caught) {
@@ -59,7 +62,16 @@ export function AssignTaskModal({ work, task, onClose, onDone }: Done & { work: 
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button loading={saving} disabled={!assignee} onClick={() => run(() => api(`/tasks/${task.id}/assign`, { method: "POST", token, body: { assigned_to: assignee, due_date: due || undefined } }))}>
+          <Button
+            loading={saving}
+            disabled={!assignee}
+            onClick={() =>
+              run(() => api(`/tasks/${task.id}/assign`, { method: "POST", token, body: { assigned_to: assignee, due_date: due || undefined } }), {
+                title: `Assigned to ${(people.data ?? []).find((person) => person.id === assignee)?.name ?? "assignee"}`,
+                description: task.title
+              })
+            }
+          >
             Assign
           </Button>
         </>
@@ -119,7 +131,7 @@ export function SubmitTaskModal({ task, onClose, onDone }: Done & { task: WorkTa
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button loading={saving} disabled={!complete} onClick={() => run(submit)}>
+          <Button loading={saving} disabled={!complete} onClick={() => run(submit, { title: "Submitted for review", description: task.title })}>
             Submit for review
           </Button>
         </>
@@ -173,7 +185,12 @@ export function ReviewTaskModal({ task, decision, onClose, onDone }: Done & { ta
             variant={accept ? "primary" : "danger"}
             loading={saving}
             disabled={!accept && remarks.trim().length < 3}
-            onClick={() => run(() => api(`/tasks/${task.id}/${decision}`, { method: "POST", token, body: { remarks: remarks || undefined } }))}
+            onClick={() =>
+              run(() => api(`/tasks/${task.id}/${decision}`, { method: "POST", token, body: { remarks: remarks || undefined } }), {
+                title: accept ? `Accepted — ${task.submitted_by_name ?? "submitter"} notified` : `Returned to ${task.submitted_by_name ?? "submitter"} for rework`,
+                description: task.title
+              })
+            }
           >
             {accept ? "Accept" : "Return"}
           </Button>
@@ -260,7 +277,18 @@ export function GateModal({ work, stage, onClose, onDone }: Done & { work: WorkJ
             variant={outcome === "REJECTED" ? "danger" : "primary"}
             loading={saving}
             disabled={invalid}
-            onClick={() => run(() => api(`/work-stages/${stage.id}/evaluate`, { method: "POST", token, body: body() }))}
+            onClick={() =>
+              run(
+                async () => {
+                  const { data: result } = await api<{ next_stage: string | null; effects: Record<string, unknown> }>(`/work-stages/${stage.id}/evaluate`, { method: "POST", token, body: body() });
+                  return result;
+                },
+                {
+                  title: `${stage.name}: ${outcomes.find((item) => item.value === outcome)?.label.toLowerCase()}`,
+                  description: passing ? "Next stage unlocked — assignees can start" : outcome === "RETURNED" ? "Selected tasks sent back for rework" : "Work stopped"
+                }
+              )
+            }
           >
             Record evaluation
           </Button>

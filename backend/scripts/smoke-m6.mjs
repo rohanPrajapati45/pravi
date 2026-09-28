@@ -70,5 +70,14 @@ check("HQ bulk recompute (set-based)", recompute.status === 200, `${recompute.bo
 const timing = await call(hq, "/dashboard/summary");
 check("Dashboard summary responds < 1 s", timing.ms < 1000, `${timing.ms} ms`);
 
+// ---- activity trail: who → whom → when ----
+const kiranFeed = (await call(ae, "/activity?scope=for_me&limit=50")).body.data;
+const fromRohit = kiranFeed.find((item) => item.actor.name === "Rohit Parmar" && item.target?.name === "Kiran Solanki");
+check("Activity: AE sees hand-offs addressed to them, with actor and timestamp", Boolean(fromRohit?.at && fromRohit?.link), fromRohit ? `${fromRohit.actor.name} ${fromRohit.verb} → ${fromRohit.target.name} · ${fromRohit.subject}` : "none");
+const rohitFeed = (await call(ee, "/activity?scope=for_me&limit=50")).body.data;
+check("Activity: EE sees submissions / completions sent to them", rohitFeed.some((item) => ["MAINTENANCE_COMPLETED", "TASK_SUBMITTED", "MAINTENANCE_AUTO_RAISED"].includes(item.action)), `${rohitFeed.length} items`);
+const unread = (await call(ae, `/activity/unread?since=${encodeURIComponent(new Date(Date.now() - 3600_000).toISOString())}`)).body.data;
+check("Activity: unread count since a timestamp", typeof unread.unread === "number", `${unread.unread} in the last hour`);
+
 await db.end();
 summary("M6");

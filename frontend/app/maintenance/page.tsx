@@ -12,7 +12,7 @@ import StatusBadge, { humanize } from "@/components/ui/StatusBadge";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/cn";
-import { daysFromToday, formatDate } from "@/lib/format";
+import { daysFromToday, formatDate, formatDateTime } from "@/lib/format";
 import { useApi } from "@/lib/useApi";
 import type { MaintenanceRow, MaintenanceSummary } from "@/types/maintenance";
 
@@ -50,6 +50,7 @@ function RequestCard({ request }: { request: MaintenanceRow }) {
       <p className="mt-1 text-xs text-muted">
         <span className="font-mono">{request.asset_code}</span> · {request.org_unit_name}
       </p>
+      <p className="mt-1 font-mono text-[11px] text-muted">Raised {formatDateTime(request.created_at)}</p>
       <p className="mt-1 text-xs text-muted">
         {request.assigned_to_name ? `→ ${request.assigned_to_name}${request.contractor_name && request.assigned_to_role === "CONTRACTOR" ? ` (${request.contractor_name})` : ""}` : "Unassigned"}
         {request.due_date && ` · due ${formatDate(request.due_date)}`}

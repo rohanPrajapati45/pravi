@@ -5,11 +5,12 @@ function runner(db) {
   return db ? (text, params) => db.query(text, params) : poolQuery;
 }
 
-export async function audit({ user, action, entity, entityId, diff, ip }, db) {
+// `targetUserId` = the person the action is directed at (assignee, submitter…), used for activity feeds.
+export async function audit({ user, action, entity, entityId, diff, ip, targetUserId }, db) {
   await runner(db)(
-    `insert into audit_logs (user_id, actor_role, action, entity, entity_id, diff, ip)
-     values ($1, $2, $3, $4, $5, $6, $7)`,
-    [user?.id ?? null, user?.role ?? "SYSTEM", action, entity, entityId ? String(entityId) : null, diff ?? null, ip ?? null]
+    `insert into audit_logs (user_id, actor_role, action, entity, entity_id, diff, ip, target_user_id)
+     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [user?.id ?? null, user?.role ?? "SYSTEM", action, entity, entityId ? String(entityId) : null, diff ?? null, ip ?? null, targetUserId ?? null]
   );
 }
 

@@ -151,6 +151,10 @@ export async function createWork(user, input, ip) {
     }
   }
 
+  // The responsible division's EE is notified that a work has landed on their desk.
+  const { rows: eeRows } = await query("select u.id from users u where u.role = 'EE' and u.is_active and u.org_unit_id = $1 limit 1", [input.org_unit_id]);
+  const divisionEE = eeRows[0]?.id && eeRows[0].id !== user.id ? eeRows[0].id : null;
+
   return withTransaction(async (client) => {
     const { rows: stages } = await client.query("select * from stage_templates where template_id = $1 order by seq", [template.id]);
     const { rows: taskTemplates } = await client.query(
@@ -222,7 +226,15 @@ export async function createWork(user, input, ip) {
       );
     }
     await audit(
-      { user, action: "WORK_INITIATED", entity: "work", entityId: work.id, diff: { after: { work_code: work.work_code, template: template.code, estimated_cost: input.estimated_cost, initiation_ref: input.initiation_ref } }, ip },
+      {
+        user,
+        action: "WORK_INITIATED",
+        entity: "work",
+        entityId: work.id,
+        diff: { work_id: work.id, after: { work_code: work.work_code, template: template.code, estimated_cost: input.estimated_cost, initiation_ref: input.initiation_ref } },
+        ip,
+        targetUserId: divisionEE
+      },
       client
     );
     return { id: work.id, work_code: work.work_code };
@@ -291,8 +303,9 @@ export async function getWorkJourney(user, id) {
   const [stages, tasks, evaluations, approvals, assets, evaluation] = await Promise.all([
     query("select * from work_stages where work_id = $1 order by seq", [id]),
     query(
-      `select t.*, a.name as assigned_to_name, a.role as assigned_to_role, s.name as submitted_by_name, r.name as reviewed_by_name
+      `select t.*, a.name as assigned_to_name, a.role as assigned_to_role, s.name as submitted_by_name, r.name as reviewed_by_name, ab.name as assigned_by_name
          from work_tasks t left join users a on a.id = t.assigned_to left join users s on s.id = t.submitted_by left join users r on r.id = t.reviewed_by
+         left join users ab on ab.id = t.assigned_by
         where t.work_id = $1 order by t.seq`,
       [id]
     ),
@@ -401,7 +414,7 @@ export async function assignTask(user, taskId, { assigned_to, due_date }, ip) {
       "update work_tasks set assigned_to = $2, assigned_by = $3, assigned_at = now(), due_date = coalesce($4, due_date, current_date + 7) where id = $1",
       [taskId, assignee.id, user.id, due_date ?? null]
     );
-    await audit({ user, action: "TASK_ASSIGNED", entity: "work_task", entityId: taskId, diff: { work_id: work.id, task: task.title, assigned_to: assignee.name, due_date }, ip }, client);
+    await audit({ user, action: "TASK_ASSIGNED", entity: "work_task", entityId: taskId, diff: { work_id: work.id, task: task.title, assigned_to: assignee.name, due_date }, ip, targetUserId: assignee.id }, client);
     return { id: taskId, assigned_to: assignee.id, assigned_to_name: assignee.name };
   });
 }
@@ -424,7 +437,10 @@ export async function submitTask(user, taskId, { note, deliverables = [], photo_
               submitted_by = $6, submitted_at = now() where id = $1`,
       [taskId, note ?? null, JSON.stringify([...provided].map(([label, reference]) => ({ label, reference }))), photo_paths, progress_pct ?? null, user.id]
     );
-    await audit({ user, action: "TASK_SUBMITTED", entity: "work_task", entityId: taskId, diff: { work_id: work.id, task: task.title, deliverables: [...provided.keys()], resubmission: task.status === "RETURNED" }, ip }, client);
+    await audit(
+      { user, action: "TASK_SUBMITTED", entity: "work_task", entityId: taskId, diff: { work_id: work.id, task: task.title, deliverables: [...provided.keys()], resubmission: task.status === "RETURNED" }, ip, targetUserId: task.assigned_by },
+      client
+    );
     return { id: taskId, status: "SUBMITTED" };
   });
 }
@@ -455,7 +471,7 @@ export async function reviewTask(user, taskId, decision, { remarks }, ip) {
       [taskId, accepted ? "ACCEPTED" : "RETURNED", user.id, remarks ?? null, accepted ? 0 : 1]
     );
     if (task.is_milestone) await recomputeProgress(client, work.id);
-    await audit({ user, action: accepted ? "TASK_ACCEPTED" : "TASK_RETURNED", entity: "work_task", entityId: taskId, diff: { work_id: work.id, task: task.title, remarks }, ip }, client);
+    await audit({ user, action: accepted ? "TASK_ACCEPTED" : "TASK_RETURNED", entity: "work_task", entityId: taskId, diff: { work_id: work.id, task: task.title, remarks }, ip, targetUserId: task.submitted_by }, client);
     await logOnAssets(client, work.id, {
       eventType: accepted ? (task.is_milestone ? "MILESTONE_ACCEPTED" : "TASK_ACCEPTED") : task.is_milestone ? "MILESTONE_RETURNED" : "TASK_RETURNED",
       user,
@@ -710,7 +726,7 @@ export async function evaluateStage(user, stageId, input, ip) {
       await client.query("update works set status = 'REJECTED', closed_at = now() where id = $1", [work.id]);
     }
 
-    await audit({ user, action: `STAGE_${outcome}`, entity: "work_stage", entityId: stageId, diff: { work_id: work.id, stage: stage.name, remarks, data, effects }, ip }, client);
+    await audit({ user, action: `STAGE_${outcome}`, entity: "work_stage", entityId: stageId, diff: { work_id: work.id, stage: stage.name, remarks, data, effects }, ip, targetUserId: work.initiated_by }, client);
     await logOnAssets(client, work.id, {
       eventType: passing ? "STAGE_PASSED" : outcome === "RETURNED" ? "STAGE_RETURNED" : "WORK_REJECTED",
       user,
@@ -805,9 +821,9 @@ export async function myTasks(user) {
   const scope = workScope(user, params);
   const [assigned, toReview, gates] = await Promise.all([
     query(
-      `select t.id, t.title, t.status, t.due_date, t.is_milestone, t.review_remarks, t.required_deliverables, s.name as stage_name, s.status as stage_status,
-              w.id as work_id, w.work_code, w.title as work_title
-         from work_tasks t join work_stages s on s.id = t.work_stage_id join works w on w.id = t.work_id
+      `select t.id, t.title, t.status, t.due_date, t.is_milestone, t.review_remarks, t.required_deliverables, t.assigned_at, t.reviewed_at,
+              s.name as stage_name, s.status as stage_status, w.id as work_id, w.work_code, w.title as work_title, ab.name as assigned_by_name
+         from work_tasks t join work_stages s on s.id = t.work_stage_id join works w on w.id = t.work_id left join users ab on ab.id = t.assigned_by
         where t.assigned_to = $1 and t.status in ('PENDING', 'RETURNED', 'SUBMITTED') and s.status in ('ACTIVE', 'LOCKED')
         order by (s.status = 'ACTIVE') desc, (t.status = 'RETURNED') desc, t.due_date nulls last`,
       [user.id]
