@@ -53,8 +53,33 @@ const verbs = {
   ASSET_STATUS_CHANGED: "changed an asset's status",
   USER_CREATED: "created a user",
   PROGRAMME_CREATED: "created a programme",
-  RISK_RECOMPUTED: "recomputed risk for all assets"
+  RISK_RECOMPUTED: "recomputed risk for all assets",
+  DOCUMENT_UPLOADED: "uploaded a document",
+  DOCUMENT_REMOVED: "removed a document",
+  BOQ_ITEM_ADDED: "added a BoQ item",
+  BOQ_ITEM_UPDATED: "updated a BoQ item",
+  BOQ_ITEM_DELETED: "deleted a BoQ item",
+  MEASUREMENT_RECORDED: "recorded a measurement",
+  MEASUREMENT_CHECKED: "checked a measurement",
+  MEASUREMENT_REJECTED: "rejected a measurement",
+  BILL_SUBMITTED: "prepared a running bill",
+  BILL_APPROVED: "approved a running bill",
+  BILL_RETURNED: "returned a running bill",
+  BILL_PAID: "recorded payment of a running bill",
+  EMERGENCY_DECLARED: "declared an emergency",
+  EMERGENCY_DAMAGE_REPORTED: "reported emergency damage",
+  EMERGENCY_ASSET_RESTORED: "restored an asset after an emergency",
+  EMERGENCY_CLOSED: "closed an emergency",
+  COMPLAINT_RECEIVED: "filed a complaint",
+  COMPLAINT_ACKNOWLEDGED: "acknowledged a complaint",
+  COMPLAINT_ROUTED: "routed a complaint to an asset",
+  COMPLAINT_IN_PROGRESS: "took up a complaint for repair",
+  COMPLAINT_RESOLVED: "resolved a complaint",
+  COMPLAINT_REJECTED: "closed a complaint as not actionable"
 };
+
+// Measurement book and bill actions open the work's measurement book.
+const MB_ACTIONS = new Set(["BOQ_ITEM_ADDED", "BOQ_ITEM_UPDATED", "BOQ_ITEM_DELETED", "MEASUREMENT_RECORDED", "MEASUREMENT_CHECKED", "MEASUREMENT_REJECTED", "BILL_SUBMITTED", "BILL_APPROVED", "BILL_RETURNED", "BILL_PAID"]);
 
 function describe(row) {
   const diff = row.diff ?? {};
@@ -78,6 +103,9 @@ function describe(row) {
     subject = `${row.asset_code} · ${row.asset_name}`;
     link = `/assets/${row.entity_id}`;
   }
+  if (row.work_id && MB_ACTIONS.has(row.action)) link = `/works/${row.work_id}/mb`;
+  if (row.entity === "complaint") link = `/complaints/${row.entity_id}`;
+  if (row.entity === "emergency") link = `/emergencies/${row.entity_id}`;
   const details = [];
   if (typeof diff.remarks === "string" && diff.remarks) details.push(diff.remarks);
   if (row.action === "INSPECTION_SUBMITTED" && diff.after) details.push(`condition ${diff.before?.condition_rating ?? "—"} → ${diff.after.condition_rating}`);

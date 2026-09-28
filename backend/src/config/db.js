@@ -4,6 +4,8 @@ const { Pool, types } = pg;
 
 // Return NUMERIC as JS numbers (costs, chainage) instead of strings.
 types.setTypeParser(1700, (value) => (value === null ? null : Number(value)));
+// BIGINT (file sizes) as numbers — values stay far below 2^53.
+types.setTypeParser(20, (value) => (value === null ? null : Number(value)));
 // Keep DATE as 'YYYY-MM-DD'; JS Date would shift it across the IST/UTC boundary.
 types.setTypeParser(1082, (value) => value);
 

@@ -15,7 +15,8 @@ if (!process.argv.includes("--confirm")) {
 }
 
 const tables = [
-  "contractor_evaluations", "work_approvals", "stage_evaluations", "work_tasks", "work_stages", "task_templates", "stage_templates",
+  "notifications", "job_runs", "integration_logs", "complaints", "emergency_assets", "emergencies", "measurements", "running_bills", "boq_items",
+  "documents", "contractor_evaluations", "work_approvals", "stage_evaluations", "work_tasks", "work_stages", "task_templates", "stage_templates",
   "work_templates", "approval_limits", "programmes", "maintenance_requests", "inspections", "lifecycle_events", "work_assets", "assets",
   "works", "asset_types", "audit_logs", "users", "contractors", "org_units", "schema_migrations"
 ];
@@ -25,7 +26,7 @@ await client.connect();
 try {
   await client.query("BEGIN");
   await client.query(`drop table if exists ${tables.join(", ")} cascade`);
-  await client.query("drop sequence if exists asset_code_seq, inspection_code_seq, request_code_seq, work_code_seq cascade");
+  await client.query("drop sequence if exists asset_code_seq, inspection_code_seq, request_code_seq, work_code_seq, emergency_code_seq, complaint_code_seq cascade");
   await client.query("drop function if exists set_updated_at(), org_units_set_path(), forbid_mutation() cascade");
   await client.query("COMMIT");
   console.log(`Dropped ${tables.length} tables, sequences and functions.`);
@@ -43,4 +44,7 @@ const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 });
 const stale = (data?.users ?? []).filter((user) => user.email?.startsWith("smoke."));
 for (const user of stale) await supabase.auth.admin.deleteUser(user.id);
 const emptied = await supabase.storage.emptyBucket("evidence");
-console.log(`Removed ${stale.length} smoke-test login(s); evidence bucket ${emptied.error ? `not emptied (${emptied.error.message})` : "emptied"}.`);
+const emptiedDocs = await supabase.storage.emptyBucket("documents");
+console.log(
+  `Removed ${stale.length} smoke-test login(s); evidence bucket ${emptied.error ? `not emptied (${emptied.error.message})` : "emptied"}; documents bucket ${emptiedDocs.error ? "not present yet" : "emptied"}.`
+);

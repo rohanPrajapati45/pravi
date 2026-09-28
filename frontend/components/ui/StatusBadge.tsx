@@ -40,7 +40,28 @@ const statusTones: Record<string, Tone> = {
   LOW: "success",
   MEDIUM: "warning",
   HIGH: "danger",
-  CRITICAL: "danger"
+  CRITICAL: "danger",
+  // complaints
+  RECEIVED: "info",
+  ACKNOWLEDGED: "accent",
+  RESOLVED: "success",
+  DUPLICATE: "neutral",
+  // measurement book & bills
+  RECORDED: "info",
+  CHECKED: "success",
+  SUBMITTED: "info",
+  APPROVED: "accent",
+  RETURNED: "warning",
+  PAID: "success",
+  // emergencies
+  ACTIVE: "danger",
+  REPORTED: "warning",
+  RESTORED: "success",
+  SEVERE: "danger",
+  MAJOR: "warning",
+  MINOR: "info",
+  WARNING: "warning",
+  INFO: "info"
 };
 
 export function humanize(value: string) {

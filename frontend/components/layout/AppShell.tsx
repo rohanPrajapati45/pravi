@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import EmergencyBanner from "@/components/layout/EmergencyBanner";
+import NotificationBell from "@/components/layout/NotificationBell";
 import Avatar from "@/components/ui/Avatar";
 import Icon from "@/components/ui/Icon";
 import Loading from "@/components/ui/Loading";
@@ -21,7 +22,7 @@ type AppShellProps = {
   allowedRoles?: Role[];
 };
 
-export const seenKey = (userId: string) => `gujinfra.activity-seen.${userId}`;
+export { seenKey } from "./NotificationBell";
 
 // Jump straight to an asset, work or request by its code.
 function QuickFind() {
@@ -44,6 +45,15 @@ function QuickFind() {
         const { data } = await api<Array<{ id: string }>>("/maintenance-requests", { token, query: { q: code, limit: 1 } });
         if (!data[0]) throw new Error("No request with that code");
         router.push(`/maintenance/${data[0].id}`);
+      } else if (code.startsWith("CMP-")) {
+        const { data } = await api<Array<{ id: string }>>("/complaints", { token, query: { q: code, limit: 1 } });
+        if (!data[0]) throw new Error("No complaint with that number in your jurisdiction");
+        router.push(`/complaints/${data[0].id}`);
+      } else if (code.startsWith("EMG-")) {
+        const { data } = await api<Array<{ id: string; emergency_code: string }>>("/emergencies", { token });
+        const match = data.find((item) => item.emergency_code === code);
+        if (!match) throw new Error("No emergency with that code");
+        router.push(`/emergencies/${match.id}`);
       } else {
         const { data } = await api<{ id: string }>("/assets/lookup", { token, query: { code } });
         router.push(`/assets/${data.id}`);
@@ -64,53 +74,11 @@ function QuickFind() {
           setError(null);
         }}
         aria-label="Go to asset, work or request code"
-        placeholder="Go to code — RDB-BR-000001, WK-…, MR-…"
+        placeholder="Go to code — RDB-BR-000001, WK-…, MR-…, CMP-…"
         className="h-10 w-full rounded-xl border border-line bg-page pl-9 pr-3 font-mono text-[13px] placeholder:font-sans placeholder:text-muted focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/30"
       />
       {error && <p className="absolute left-0 top-11 rounded-lg bg-surface px-3 py-1.5 text-xs text-red-700 shadow-lift">{error}</p>}
     </form>
-  );
-}
-
-function ActivityBell({ userId }: { userId: string }) {
-  const { token } = useAuth();
-  const pathname = usePathname();
-  const [unread, setUnread] = useState(0);
-
-  useEffect(() => {
-    if (!token) return;
-    let stopped = false;
-    const check = async () => {
-      let since: string | null = null;
-      try {
-        since = localStorage.getItem(seenKey(userId));
-      } catch {
-        since = null;
-      }
-      try {
-        const { data } = await api<{ unread: number }>("/activity/unread", { token, query: { since } });
-        if (!stopped) setUnread(data.unread);
-      } catch {
-        // The bell is a convenience; failures stay silent.
-      }
-    };
-    check();
-    const timer = setInterval(check, 20000);
-    return () => {
-      stopped = true;
-      clearInterval(timer);
-    };
-  }, [token, userId, pathname]);
-
-  return (
-    <Link href="/activity" aria-label={`Activity${unread ? `, ${unread} new` : ""}`} className="relative rounded-lg p-2 text-muted hover:bg-slate-100 hover:text-ink">
-      <Icon name="bell" className="h-5 w-5" />
-      {unread > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-surface">
-          {unread > 99 ? "99+" : unread}
-        </span>
-      )}
-    </Link>
   );
 }
 
@@ -163,10 +131,11 @@ export default function AppShell({ title, subtitle, children, headerRight, allow
           right={
             <>
               {headerRight}
-              <ActivityBell userId={profile.id} />
+              <NotificationBell userId={profile.id} />
             </>
           }
         />
+        <EmergencyBanner />
         <main className="mx-auto w-full max-w-[1400px] flex-1 animate-fade-in p-4 md:p-6">
           {forbidden ? (
             <div className="rounded-2xl border border-line bg-surface p-10 text-center shadow-card">

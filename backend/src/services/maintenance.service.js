@@ -188,7 +188,7 @@ export async function requestSummary(user) {
 
 export async function getRequestDetail(user, id) {
   const request = await getScopedRequest(user, id);
-  const [history, inspection] = await Promise.all([
+  const [history, inspection, complaints, emergency] = await Promise.all([
     query(
       `select l.action, l.at, l.diff, l.actor_role, u.name as actor_name
          from audit_logs l left join users u on u.id = l.user_id
@@ -197,6 +197,10 @@ export async function getRequestDetail(user, id) {
     ),
     request.source === "INSPECTION" && request.source_id
       ? query("select inspection_code, inspected_at, condition_rating, defects, photo_paths from inspections where id = $1", [request.source_id])
+      : { rows: [] },
+    query("select id, complaint_code, status, channel, created_at from complaints where maintenance_request_id = $1 order by created_at", [id]),
+    request.source === "EMERGENCY" && request.source_id
+      ? query("select id, emergency_code, title, status from emergencies where id = $1", [request.source_id])
       : { rows: [] }
   ]);
   const source = inspection.rows[0] ?? null;
@@ -206,6 +210,8 @@ export async function getRequestDetail(user, id) {
     source_inspection: source ? { ...source, photos: await signedUrls(source.photo_paths) } : null,
     after_photos: await signedUrls(request.after_photo_paths),
     history: history.rows,
+    complaints: complaints.rows,
+    source_emergency: emergency.rows[0] ?? null,
     allowed_actions: allowedActions(user, request)
   };
 }
@@ -394,7 +400,15 @@ export async function closeRequest(user, id, { actual_cost, remarks }, ip) {
     remarks,
     ip,
     describe: { actual_cost },
-    apply: () => ({ actual_cost, closed_at: new Date() })
+    apply: async (client, request) => {
+      // Citizens who reported this problem see it resolved when the repair closes.
+      await client.query(
+        `update complaints set status = 'RESOLVED', resolved_by = $2, resolved_at = now(), resolution_note = $3
+          where maintenance_request_id = $1 and status = 'IN_PROGRESS'`,
+        [request.id, user.id, `Repaired under ${request.request_code}${request.verified_condition ? ` — condition after repair ${request.verified_condition}/5` : ""}`]
+      );
+      return { actual_cost, closed_at: new Date() };
+    }
   });
 }
 
@@ -404,7 +418,14 @@ export async function cancelRequest(user, id, { remarks }, ip) {
     action: "MAINTENANCE_CANCELLED",
     remarks,
     ip,
-    apply: () => ({ cancel_reason: remarks })
+    apply: async (client, request) => {
+      // A cancelled repair hands linked complaints back to the office to decide again.
+      await client.query(
+        "update complaints set status = 'ACKNOWLEDGED', maintenance_request_id = null where maintenance_request_id = $1 and status = 'IN_PROGRESS'",
+        [request.id]
+      );
+      return { cancel_reason: remarks };
+    }
   }).then(async (result) => {
     const request = await getScopedRequest(user, id);
     await withTransaction((client) => recomputeRisk(client, request.asset_id));

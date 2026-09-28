@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import Avatar from "@/components/ui/Avatar";
@@ -90,6 +91,12 @@ export default function LoginPage() {
           </div>
           <h2 className="text-2xl font-semibold">Sign in</h2>
           <p className="mt-1 text-sm text-muted">Use a demo account below — one click, no typing.</p>
+          <Link href="/complain" className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-dashed border-line px-3 py-2 text-sm hover:border-accent">
+            <span>
+              <span className="font-medium">Citizen?</span> <span className="text-muted">Report a road or bridge problem — no login needed</span>
+            </span>
+            <Icon name="arrow" className="h-4 w-4 text-muted" />
+          </Link>
 
           <div className="mt-6 space-y-4">
             {roleOrder.map((role) => (

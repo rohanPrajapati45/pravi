@@ -26,6 +26,8 @@ export function allowedTransitions(machine, from, role) {
 const officers = ["HQ", "EE"];
 const system = ["SYSTEM", "HQ", "EE"];
 const retire = { roles: officers, requires: ["remarks"] };
+// Closing to traffic: officers by hand, or the system when an emergency damage report says the asset is closed.
+const closeToTraffic = { roles: [...officers, "SYSTEM"], requires: ["remarks"] };
 
 // PRD 7.1 — asset lifecycle.
 export const assetMachine = createMachine("Asset", {
@@ -34,11 +36,11 @@ export const assetMachine = createMachine("Asset", {
   OPERATIONAL: {
     UNDER_MAINTENANCE: { roles: ["SYSTEM"] },
     UNDER_REHABILITATION: { roles: system },
-    CLOSED_TEMPORARILY: { roles: officers, requires: ["remarks"] },
+    CLOSED_TEMPORARILY: closeToTraffic,
     RETIRED: retire
   },
-  UNDER_MAINTENANCE: { OPERATIONAL: { roles: ["SYSTEM"] }, RETIRED: retire },
+  UNDER_MAINTENANCE: { OPERATIONAL: { roles: ["SYSTEM"] }, CLOSED_TEMPORARILY: closeToTraffic, RETIRED: retire },
   UNDER_REHABILITATION: { OPERATIONAL: { roles: system }, RETIRED: retire },
-  CLOSED_TEMPORARILY: { OPERATIONAL: { roles: officers, requires: ["remarks"] }, RETIRED: retire },
+  CLOSED_TEMPORARILY: { OPERATIONAL: closeToTraffic, RETIRED: retire },
   RETIRED: {}
 });

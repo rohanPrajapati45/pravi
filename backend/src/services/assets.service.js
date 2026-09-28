@@ -31,7 +31,8 @@ const SORTS = {
   updated: "a.updated_at desc"
 };
 
-export async function listAssets(user, filters, { page, limit, offset }) {
+// Shared by the registry list and the map so both apply identical scope and filters.
+function buildAssetWhere(user, filters) {
   const params = [];
   const where = [assetScope(user, params)];
   const add = (sql, value) => {
@@ -51,8 +52,17 @@ export async function listAssets(user, filters, { page, limit, offset }) {
   if (filters.top_level) where.push("a.parent_id is null");
   if (filters.overdue) where.push("a.next_inspection_due < current_date");
   if (filters.in_dlp) where.push("a.dlp_end_date >= current_date");
+  if (filters.bbox) {
+    const [minLng, minLat, maxLng, maxLat] = filters.bbox;
+    params.push(minLat, maxLat, minLng, maxLng);
+    const n = params.length;
+    where.push(`a.lat between $${n - 3} and $${n - 2} and a.lng between $${n - 1} and $${n}`);
+  }
+  return { params, whereSql: where.join(" and ") };
+}
 
-  const whereSql = where.join(" and ");
+export async function listAssets(user, filters, { page, limit, offset }) {
+  const { params, whereSql } = buildAssetWhere(user, filters);
   const [{ rows }, count] = await Promise.all([
     query(
       `select a.id, a.asset_code, a.name, a.lifecycle_status, a.condition_rating, a.risk_score, a.risk_band,
@@ -67,6 +77,46 @@ export async function listAssets(user, filters, { page, limit, offset }) {
     query(`select count(*)::int as total ${BASE_FROM} where ${whereSql}`, params)
   ]);
   return { rows, total: count.rows[0].total };
+}
+
+const GEO_CAP = 5000;
+
+// GeoJSON for the map: road segments as lines (when geometry exists), everything else as points.
+export async function listAssetsGeo(user, filters) {
+  const { params, whereSql } = buildAssetWhere(user, filters);
+  const { rows } = await query(
+    `select a.id, a.asset_code, a.name, a.lat, a.lng, a.geometry, a.lifecycle_status, a.condition_rating, a.risk_score, a.risk_band,
+            a.district, a.road_code, a.start_chainage_km, a.end_chainage_km, a.next_inspection_due, a.dlp_end_date, a.parent_id,
+            t.name as type_name, t.category
+       ${BASE_FROM}
+      where ${whereSql} and a.lat is not null and a.lng is not null
+      order by a.risk_score desc
+      limit ${GEO_CAP + 1}`,
+    params
+  );
+  const truncated = rows.length > GEO_CAP;
+  const features = rows.slice(0, GEO_CAP).map((row) => ({
+    type: "Feature",
+    geometry: row.geometry?.type === "LineString" ? row.geometry : { type: "Point", coordinates: [Number(row.lng), Number(row.lat)] },
+    properties: {
+      id: row.id,
+      code: row.asset_code,
+      name: row.name,
+      type: row.type_name,
+      category: row.category,
+      status: row.lifecycle_status,
+      condition: row.condition_rating,
+      risk: Number(row.risk_score),
+      band: row.risk_band,
+      district: row.district,
+      road: row.road_code ? `${row.road_code} km ${Number(row.start_chainage_km).toFixed(1)}–${Number(row.end_chainage_km).toFixed(1)}` : null,
+      overdue: Boolean(row.next_inspection_due && row.next_inspection_due < new Date().toISOString().slice(0, 10)),
+      in_dlp: Boolean(row.dlp_end_date && row.dlp_end_date >= new Date().toISOString().slice(0, 10)),
+      component: Boolean(row.parent_id),
+      anchor: [Number(row.lng), Number(row.lat)]
+    }
+  }));
+  return { type: "FeatureCollection", features, meta: { count: features.length, truncated } };
 }
 
 async function loadAsset(runner, id, { lock = false } = {}) {

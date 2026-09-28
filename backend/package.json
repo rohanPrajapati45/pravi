@@ -13,7 +13,7 @@
     "seed:production": "node --experimental-websocket ../database/seed/index.mjs --profile=production",
     "create-admin": "node --experimental-websocket ../database/create-admin.mjs",
     "db:reset":"node --experimental-websocket ../database/reset.mjs --confirm && npm run migrate && npm run seed",
-    "test:smoke": "node --experimental-websocket scripts/smoke-m1.mjs && node --experimental-websocket scripts/smoke-m2.mjs && node --experimental-websocket scripts/smoke-m3.mjs && node --experimental-websocket scripts/smoke-m4.mjs && node --experimental-websocket scripts/smoke-m5.mjs && node --experimental-websocket scripts/smoke-m6.mjs && node --experimental-websocket scripts/smoke-admin.mjs"
+    "test:smoke": "node --experimental-websocket scripts/smoke-m1.mjs && node --experimental-websocket scripts/smoke-m2.mjs && node --experimental-websocket scripts/smoke-m3.mjs && node --experimental-websocket scripts/smoke-m4.mjs && node --experimental-websocket scripts/smoke-m5.mjs && node --experimental-websocket scripts/smoke-m6.mjs && node --experimental-websocket scripts/smoke-m7.mjs && node --experimental-websocket scripts/smoke-m8.mjs && node --experimental-websocket scripts/smoke-m9.mjs && node --experimental-websocket scripts/smoke-m10.mjs && node --experimental-websocket scripts/smoke-m11.mjs && node --experimental-websocket scripts/smoke-m12.mjs && node --experimental-websocket scripts/smoke-m13.mjs && node --experimental-websocket scripts/smoke-admin.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.109.0",

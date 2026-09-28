@@ -12,6 +12,8 @@ const { inspectionsStep } = await import("./03_inspections.mjs");
 const { maintenanceStep } = await import("./04_maintenance.mjs");
 const { templatesStep } = await import("./05_works.mjs");
 const { workHistoryStep } = await import("./06_work_history.mjs");
+const { documentsStep } = await import("./07_documents.mjs");
+const { operationsStep } = await import("./08_operations.mjs");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set in Pravi/.env");
@@ -26,8 +28,8 @@ const client = new pg.Client({
 // Each step is idempotent and runs in order; `context` carries ids from earlier steps to later ones.
 // --profile=production loads configuration only (offices, asset types, templates, limits) — no demo people or data.
 const profile = process.argv.includes("--profile=production") ? "production" : "demo";
-const demoOnly = new Set([inspectionsStep, maintenanceStep, workHistoryStep]);
-const steps = [orgUsersStep, assetsStep, inspectionsStep, maintenanceStep, templatesStep, workHistoryStep].filter((step) => profile === "demo" || !demoOnly.has(step));
+const demoOnly = new Set([inspectionsStep, maintenanceStep, workHistoryStep, documentsStep, operationsStep]);
+const steps = [orgUsersStep, assetsStep, inspectionsStep, maintenanceStep, templatesStep, workHistoryStep, documentsStep, operationsStep].filter((step) => profile === "demo" || !demoOnly.has(step));
 const context = { profile };
 console.log(`Seed profile: ${profile}`);
 

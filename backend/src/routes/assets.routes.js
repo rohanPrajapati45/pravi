@@ -13,6 +13,8 @@ import {
   postAssetStatus
 } from "../controllers/assets.controller.js";
 import { requireRole } from "../middleware/rbac.js";
+import { listAssetsGeo } from "../services/assets.service.js";
+import { ok } from "../utils/response.js";
 import validate from "../middleware/validate.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
@@ -88,6 +90,18 @@ const updateBody = z
 
 router.get("/asset-types", asyncHandler(getAssetTypes));
 router.get("/assets", validate({ query: listQuery }), asyncHandler(getAssets));
+const bbox = opt(
+  z
+    .string()
+    .transform((value) => value.split(",").map(Number))
+    .refine((values) => values.length === 4 && values.every(Number.isFinite), "bbox = minLng,minLat,maxLng,maxLat")
+    .refine(([minLng, minLat, maxLng, maxLat]) => minLng < maxLng && minLat < maxLat, "bbox min must be below max")
+);
+router.get(
+  "/assets/geo",
+  validate({ query: listQuery.extend({ bbox }) }),
+  asyncHandler(async (request, response) => ok(response, await listAssetsGeo(request.user, request.valid.query)))
+);
 router.get("/assets/lookup", validate({ query: z.object({ code: z.string().trim().min(3).max(64) }) }), asyncHandler(getLookup));
 router.get("/assets/:id", validate(idParams), asyncHandler(getAsset));
 router.get("/assets/:id/360", validate(idParams), asyncHandler(getAssetDetail360));

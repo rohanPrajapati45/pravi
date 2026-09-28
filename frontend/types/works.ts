@@ -75,6 +75,7 @@ export type WorkListRow = {
   template_name: string;
   org_unit_name: string;
   programme_name: string | null;
+  contractor_id: string | null;
   contractor_name: string | null;
   estimated_cost: number | null;
   sanctioned_amount: number | null;

@@ -145,6 +145,25 @@ export default function MaintenanceDetailPage() {
             {r.completion_remarks && <p className="mt-3 text-sm"><span className="text-muted">Completion note:</span> {r.completion_remarks}</p>}
             {r.verification_remarks && <p className="mt-1 text-sm"><span className="text-muted">Verifier:</span> {r.verification_remarks}</p>}
             {r.cancel_reason && <p className="mt-1 text-sm"><span className="text-muted">Cancelled:</span> {r.cancel_reason}</p>}
+            {r.source_emergency && (
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+                Raised under emergency{" "}
+                <Link href={`/emergencies/${r.source_emergency.id}`} className="font-mono underline">{r.source_emergency.emergency_code}</Link> · {r.source_emergency.title}
+              </p>
+            )}
+            {r.complaints?.length > 0 && (
+              <div className="mt-3 rounded-lg bg-accent-soft px-3 py-2 text-sm">
+                <p className="font-medium">Citizen complaints on this repair</p>
+                <p className="mt-0.5 flex flex-wrap gap-x-3">
+                  {r.complaints.map((complaint) => (
+                    <Link key={complaint.id} href={`/complaints/${complaint.id}`} className="font-mono text-accent-text underline">
+                      {complaint.complaint_code} · {humanize(complaint.status)}
+                    </Link>
+                  ))}
+                </p>
+                <p className="text-xs text-muted">They are resolved automatically — and citizens see it — when this request is closed.</p>
+              </div>
+            )}
           </Card>
 
           {(r.source_inspection || r.after_photos.length > 0) && (

@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import AssetTypesTab from "@/components/admin/AssetTypesTab";
 import ContractorsTab from "@/components/admin/ContractorsTab";
 import OfficesTab from "@/components/admin/OfficesTab";
+import OperationsTab from "@/components/admin/OperationsTab";
 import { LimitsTab, SystemTab, TemplatesTab } from "@/components/admin/SettingsTabs";
 import UsersTab from "@/components/admin/UsersTab";
 import AppShell from "@/components/layout/AppShell";
@@ -18,6 +19,7 @@ const tabs = [
   { key: "limits", label: "Approval limits" },
   { key: "contractors", label: "Contractors" },
   { key: "templates", label: "Work templates" },
+  { key: "operations", label: "Jobs & integrations" },
   { key: "system", label: "System" }
 ];
 
@@ -37,6 +39,7 @@ function AdminConsole() {
       {tab === "limits" && <LimitsTab />}
       {tab === "contractors" && <ContractorsTab />}
       {tab === "templates" && <TemplatesTab />}
+      {tab === "operations" && <OperationsTab />}
       {tab === "system" && <SystemTab />}
     </AppShell>
   );

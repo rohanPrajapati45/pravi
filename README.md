@@ -16,6 +16,8 @@ Built for the Pravi Research *Build for Billions* hackathon. Positioned as an **
 | **Inspections** | Mobile-first form: 5-point condition, severity, defect quick-picks, camera photos (signed direct upload), live GPS with distance-from-asset check. A rating ≤ 2 or HIGH severity **raises a repair automatically**. |
 | **Maintenance workflow** | `OPEN → ASSIGNED → IN_PROGRESS → COMPLETED → VERIFIED → CLOSED` with reject loop. After-photo required; **verifier ≠ doer**; asset status follows automatically; **DLP defects are routed to the original contractor**. |
 | **Work journey** | Template-driven stages → tasks → gates (New Road in full; Bridge, Building, Repair, Emergency). Required deliverables, evaluator ≠ doer, **cost-based approval escalation**, award with DLP, milestone quality rework, **handover creates the asset** with its entire pre-asset history, **explainable contractor evaluation** at closure. "Who has the file now" on every work. |
+| **GIS map** | Leaflet + OpenStreetMap: clustered markers (cluster colour = worst risk inside), road segments as lines, colour by risk or condition, filters shared with the registry, "Locate me", deep link from Asset 360. |
+| **Contractors & DLP** | DLP tracker (in DLP, ending soon with end-of-DLP inspection, liable-defect queue, recently ended) and contractor performance (on-time %, delay, first-pass quality, DLP defects and fix time, closure scores) — contractors see only their own firm. |
 | **Risk & dashboards** | Explainable 0–100 risk score (condition, criticality, traffic, age, overdue inspection, repair history) with a "why?" breakdown and a suggested action. Role dashboards for HQ, EE, AE and contractors. |
 | **Administration** | `/admin` for HQ: users (create, transfer, deactivate, reset password), offices, asset types with a form-field editor, approval limits, contractors, work templates, system health — all audited. |
 | **Accountability** | Append-only audit log and asset timeline (database triggers reject edits), per-user **Activity** feed (who → whom → exact timestamp), notification bell. |
@@ -99,6 +101,9 @@ npm run dev                    # http://localhost:3000  ·  API http://localhost
 
 ### Demo data
 500 assets across 12 districts (roads with chainage, bridges, culverts, buildings with equipment, streetlights), ~1,700 historical inspections, 61 maintenance requests in every state, 2 programmes and 21 works at every stage — including a bridge **ready for its handover gate**, a road **mid-construction**, and the hero bridge **RDB-BR-000001** with a complete timeline from government mandate (2023) to today.
+The mid-construction road also carries a **measurement book** (8 BoQ items, 8 entries — one exceeding the BoQ, two awaiting checks — one paid and one approved RA bill); there are **5 citizen complaints** in every state (one unrouted, in the HQ queue) and a **past emergency** in Olpad for history.
+
+Citizens report problems at **`/complain`** (no login) and track them at **`/complain/track`**.
 
 ---
 
@@ -106,12 +111,12 @@ npm run dev                    # http://localhost:3000  ·  API http://localhost
 
 ```
 backend/src      config · middleware (auth, rbac, validate, errors) · routes · controllers · services (engines)
-backend/scripts  smoke-m1…m6 API test suites
+backend/scripts  smoke-m1…m13 + smoke-admin API test suites
 database/        migrations/*.sql · migrate.mjs · reset.mjs · seed/ (deterministic generators)
 frontend/        app/ (pages) · components/ (ui kit, assets, works, dashboard) · lib/ (api, auth, toast) · types/
 docs/            PRD, module notes, demo script
 ```
 
 ## Built vs roadmap
-Built (Tier A, M0–M6): foundation, auth/RBAC/jurisdiction/audit, asset registry + Asset 360, inspections, maintenance workflow, full work journey, dashboards & risk, activity feed.
-Next: GIS map (Leaflet + OSM), documents, contractor & DLP tracker, notifications/nightly jobs, measurement book, emergency mode, citizen complaints, integration adapters — see PRD §8.
+Built — all modules M0–M13: foundation, auth/RBAC/jurisdiction/audit, asset registry + Asset 360, inspections, maintenance workflow, full work journey, dashboards & risk, activity feed, administration, M7 GIS map, M8 documents, M9 contractors & DLP, M10 notifications & daily jobs, M11 measurement book & running bills, M12 emergency mode, M13 citizen complaints & integration adapters (CPGRAMS/SWAGAT inbound, PFMS bill export, GIS GeoJSON export).
+Beyond the prototype: SMS/e-mail delivery of alerts, a dedicated worker for jobs at state scale, and real portal credentials for the adapters — see PRD §8.

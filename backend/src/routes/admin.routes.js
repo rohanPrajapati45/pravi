@@ -18,6 +18,7 @@ import {
   adminUpdateOrgUnit,
   adminUpdateUser
 } from "../services/admin.service.js";
+import { listJobRuns, runDailyJobs } from "../services/jobs.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { created, ok, pageMeta, parsePagination } from "../utils/response.js";
 
@@ -172,5 +173,8 @@ router.patch(
 
 router.get("/admin/work-templates/:code", validate({ params: z.object({ code: z.string().max(40) }) }), asyncHandler(async (request, response) => ok(response, await adminTemplateDetail(request.valid.params.code))));
 router.get("/admin/system", asyncHandler(async (_request, response) => ok(response, await adminSystem())));
+
+router.get("/admin/jobs", asyncHandler(async (_request, response) => ok(response, await listJobRuns())));
+router.post("/admin/jobs/daily/run", asyncHandler(async (request, response) => ok(response, await runDailyJobs({ trigger: "MANUAL", user: request.user }))));
 
 export default router;

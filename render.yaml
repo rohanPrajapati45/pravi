@@ -22,3 +22,5 @@ services:
         sync: false
       - key: CORS_ORIGIN
         sync: false
+      - key: INTEGRATION_API_KEY
+        generateValue: true

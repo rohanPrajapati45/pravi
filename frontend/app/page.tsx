@@ -273,7 +273,7 @@ export default function DashboardPage() {
                   tone={s.maintenance.overdue ? "alert" : "default"}
                 />
                 <KpiTile label="Active works" value={s.works.active} hint={s.works.delayed ? `${s.works.delayed} delayed` : "none delayed"} href="/works" tone={s.works.delayed ? "warn" : "default"} />
-                <KpiTile label="Assets in DLP" value={s.assets.in_dlp} hint={`${s.maintenance.dlp_liable_open} contractor-liable defects open`} href="/assets?in_dlp=true" />
+                <KpiTile label="Assets in DLP" value={s.assets.in_dlp} hint={`${s.maintenance.dlp_liable_open} contractor-liable defects open`} href="/dlp" />
               </div>
 
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">

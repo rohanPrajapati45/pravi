@@ -25,7 +25,7 @@ export function workScope(user, params) {
   return `(o.path like ${p} || '%' or ${p} like o.path || '%')`;
 }
 
-function canManage(user, work) {
+export function canManage(user, work) {
   return user.role === "HQ" || (user.role === "EE" && work.org_path.startsWith(user.org_path));
 }
 

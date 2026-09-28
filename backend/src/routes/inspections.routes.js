@@ -14,6 +14,7 @@ import { signUpload } from "../services/storage.service.js";
 import { getScopedTask } from "../services/works.service.js";
 import { requireRole } from "../middleware/rbac.js";
 import validate from "../middleware/validate.js";
+import { getScopedEmergency } from "../services/emergencies.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { created, ok, pageMeta, parsePagination } from "../utils/response.js";
 
@@ -27,7 +28,7 @@ router.post(
   requireRole("HQ", "EE", "AE", "CONTRACTOR"),
   validate({
     body: z.object({
-      purpose: z.enum(["inspection", "maintenance", "progress"]),
+      purpose: z.enum(["inspection", "maintenance", "progress", "emergency"]),
       owner_id: uuid,
       content_type: z.enum(["image/jpeg", "image/png", "image/webp"])
     })
@@ -38,6 +39,7 @@ router.post(
     if (purpose === "inspection") await getScopedAsset(request.user, owner_id);
     if (purpose === "maintenance") await getScopedRequest(request.user, owner_id);
     if (purpose === "progress") await getScopedTask(request.user, owner_id);
+    if (purpose === "emergency") await getScopedEmergency(request.user, owner_id);
     created(response, await signUpload({ purpose, ownerId: owner_id, contentType: content_type }));
   })
 );

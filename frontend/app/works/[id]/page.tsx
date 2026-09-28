@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import DocumentsPanel from "@/components/documents/DocumentsPanel";
 import AppShell from "@/components/layout/AppShell";
 import Card from "@/components/ui/Card";
 import ErrorState from "@/components/ui/ErrorState";
+import Icon from "@/components/ui/Icon";
 import Loading from "@/components/ui/Loading";
 import ProgressBar from "@/components/ui/ProgressBar";
 import StatusBadge, { ConditionBadge, humanize } from "@/components/ui/StatusBadge";
@@ -104,6 +106,7 @@ export default function WorkJourneyPage() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-4">
         <ol aria-label="Work stages">
           {w.stages.map((stage, index) => (
             <StageCard
@@ -115,6 +118,24 @@ export default function WorkJourneyPage() {
             />
           ))}
         </ol>
+          {w.contractor_id && (
+            <Link href={`/works/${w.id}/mb`} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-card transition hover:border-accent">
+              <span className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent-text">
+                  <Icon name="ruler" className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block font-medium">Measurement book &amp; running bills</span>
+                  <span className="block text-xs text-muted">BoQ, measured quantities, independent checks, RA bills and payments</span>
+                </span>
+              </span>
+              <Icon name="arrow" className="h-4 w-4 text-muted" />
+            </Link>
+          )}
+          <Card title="Documents" subtitle="DPR, drawings, contract, test reports and certificates">
+            <DocumentsPanel ownerType="work" ownerId={w.id} canUpload />
+          </Card>
+        </div>
 
         <div className="space-y-4">
           <Card title="Assets">

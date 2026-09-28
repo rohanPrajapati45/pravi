@@ -3,6 +3,9 @@ export type PageMeta = {
   limit: number;
   total: number;
   totalPages: number;
+  // Extra counters some lists return alongside the page.
+  unread?: number;
+  by_status?: Record<string, number>;
 };
 
 export type ApiSuccess<T> = {

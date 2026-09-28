@@ -12,6 +12,8 @@ import Timeline from "@/components/assets/Timeline";
 import AppShell from "@/components/layout/AppShell";
 import Button, { ButtonLink } from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import AssetComplaints from "@/components/complaints/AssetComplaints";
+import DocumentsPanel from "@/components/documents/DocumentsPanel";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Input from "@/components/ui/Input";
@@ -170,9 +172,14 @@ export default function Asset360Page() {
               )}
               <Row label="Coordinates">
                 {a.lat != null && a.lng != null ? (
-                  <a className="font-mono text-xs text-accent-text underline" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${a.lat}&mlon=${a.lng}#map=15/${a.lat}/${a.lng}`}>
-                    {Number(a.lat).toFixed(4)}, {Number(a.lng).toFixed(4)}
-                  </a>
+                  <span className="flex flex-col items-end gap-0.5">
+                    <span className="font-mono text-xs">
+                      {Number(a.lat).toFixed(4)}, {Number(a.lng).toFixed(4)}
+                    </span>
+                    <Link href={`/map?focus=${a.id}`} className="text-xs font-medium text-accent-text underline">
+                      View on map
+                    </Link>
+                  </span>
                 ) : null}
               </Row>
             </dl>
@@ -284,8 +291,8 @@ export default function Asset360Page() {
               ))}
             {tab === "inspections" && <AssetInspections assetId={a.id} />}
             {tab === "maintenance" && <AssetMaintenance assetId={a.id} />}
-            {tab === "documents" && <EmptyState title="No documents attached" description="DPRs, drawings, as-built and completion certificates will appear here." />}
-            {tab === "complaints" && <EmptyState title="No citizen complaints" description="Complaints matched to this asset will appear here." />}
+            {tab === "documents" && <DocumentsPanel ownerType="asset" ownerId={a.id} canUpload={Boolean(profile && ["HQ", "EE", "AE"].includes(profile.role))} />}
+            {tab === "complaints" && <AssetComplaints assetId={a.id} linkable={Boolean(profile && profile.role !== "CONTRACTOR")} />}
           </div>
         </Card>
       </div>

@@ -35,7 +35,7 @@ export async function call(token, route, options = {}) {
   const started = Date.now();
   const response = await fetch(`${API}${route}`, {
     method: options.method ?? "GET",
-    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.body ? { "Content-Type": "application/json" } : {}) },
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.body ? { "Content-Type": "application/json" } : {}), ...options.headers },
     body: options.body ? JSON.stringify(options.body) : undefined
   });
   return { status: response.status, body: await response.json(), ms: Date.now() - started };

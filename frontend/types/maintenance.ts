@@ -49,6 +49,8 @@ export type MaintenanceDetail = MaintenanceRow & {
   } | null;
   after_photos: Array<{ path: string; url: string | null }>;
   history: Array<{ action: string; at: string; diff: Record<string, unknown> | null; actor_role: string; actor_name: string | null }>;
+  complaints: Array<{ id: string; complaint_code: string; status: string; channel: string; created_at: string }>;
+  source_emergency: { id: string; emergency_code: string; title: string; status: string } | null;
   allowed_actions: MaintenanceAction[];
 };
 
